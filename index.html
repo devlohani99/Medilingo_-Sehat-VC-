@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Consultation</title>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="nav-brand">
+        <h1>SEHAT Health Talks, No Language Barriers</h1>
+      </div>
+    </nav>
+  </header>
+  <div class="alert hidden" id="errorAlert" role="alert" aria-live="assertive">
+    <span class="alert-icon" aria-hidden="true">⚠️</span>
+    <span id="errorMessage">An error occurred. Please try again.</span>
+    <button class="close-alert" aria-label="Close">&times;</button>
+  </div>
+  <main>
+    <div class="meeting-header" style="text-align:center;margin-bottom:1.5em">
+      <h2 id="meeting-title">Meeting Room</h2>
+      <div id="meeting-link" style="margin:0.5em 0"></div>
+      <div id="user-info" style="font-size:1.1em;color:#a0a9bd"></div>
+    </div>
+    <script>
+      let urlParams = new URLSearchParams(window.location.search)
+      let room = urlParams.get('room') || ''
+      let username = localStorage.getItem('username') || ''
+      if (!room) {
+        room = Math.random().toString(36).substring(2, 10)
+        window.history.replaceState({}, '', `?room=${room}`)
+      }
+      if (!username) {
+        username = 'Guest'
+      }
+      document.getElementById('meeting-link').innerHTML = 'Share this link to invite: <input style="width:60%" value="' + window.location.href + '" readonly onclick="this.select()">'
+      document.getElementById('user-info').innerText = 'You are: ' + username
+    </script>
+    <section class="consultation-wrapper">
+      <div class="video-card">
+        <div class="video-area">
+          <video id="remoteVideo" muted autoplay playsinline aria-label="Remote video"></video>
+          <video id="localVideo" autoplay muted playsinline aria-label="Local video"></video>
+        </div>
+        <div class="video-text-group">
+          <p id="localText" class="video-text" aria-live="polite"></p>
+          <p id="remoteText" class="video-text" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="container card">
+        <div class="app">
+          <div class="language-settings">
+            <div class="setting-group">
+              <label for="input_language">
+                <span>Input Language:</span>
+                <select id="input_language" aria-label="Input language">
+                  <option value="en">English</option>
+                  <option value="hi">Hindi</option>
+                  <option value="kn">Kannada</option>
+                </select>
+              </label>
+              <label for="output_language">
+                <span>Output Language:</span>
+                <select id="output_language" aria-label="Output language">
+                  <option value="en">English</option>
+                  <option value="hi">Hindi</option>
+                  <option value="kn">Kannada</option>
+                </select>
+              </label>
+              <label for="voice_number">
+                <span>Voice Number:</span>
+                <select id="voice_number" aria-label="Voice number"></select>
+              </label>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="start-record-btn" title="Start Recording" class="primary-btn" aria-pressed="false">
+              <span aria-hidden="true">🎤</span> Start Recognition
+            </button>
+            <button id="pause-record-btn" title="Pause Recording" class="secondary-btn" disabled aria-disabled="true">
+              <span aria-hidden="true">⏸</span> Pause Recognition
+            </button>
+          </div>
+          <div class="input-single">
+            <textarea id="note-textarea" placeholder="Voice recognition will appear here..." rows="6" aria-label="Transcription"></textarea>
+          </div>
+          <p id="recording-instructions">
+            Press the <strong>Start Recognition</strong> button and allow access.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.querySelector('.close-alert').onclick = function() {
+      document.getElementById('errorAlert').classList.add('hidden');
+    };
+    function showError(msg) {
+      document.getElementById('errorMessage').textContent = msg;
+      document.getElementById('errorAlert').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
