@@ -25,7 +25,7 @@ var app = http.createServer(function(req, res) {
     req.url = '/index.html';
   }
   fileServer.serve(req, res, function(err) {
-    if (err) {
+    if (err && !res.headersSent) {
       res.writeHead(err.status || 500, { 'Content-Type': 'text/plain' });
       res.end('Error serving ' + req.url + ': ' + err.message);
     }
