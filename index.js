@@ -13,18 +13,23 @@ var fileServer = new(nodeStatic.Server)(__dirname, {
 });
 
 var app = http.createServer(function(req, res) {
-  if (req.url === '/') {
-    req.url = '/index.html';
-  }
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
-  } else {
-    fileServer.serve(req, res);
+    return;
   }
+  if (req.url === '/') {
+    req.url = '/index.html';
+  }
+  fileServer.serve(req, res, function(err) {
+    if (err) {
+      res.writeHead(err.status || 500, { 'Content-Type': 'text/plain' });
+      res.end('Error serving ' + req.url + ': ' + err.message);
+    }
+  });
 }).listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
