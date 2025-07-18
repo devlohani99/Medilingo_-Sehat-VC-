@@ -22,9 +22,9 @@ var app = http.createServer(function(req, res) {
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
-    return;
+  } else {
+    fileServer.serve(req, res);
   }
-  fileServer.serve(req, res);
 }).listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
