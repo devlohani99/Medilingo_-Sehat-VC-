@@ -13,22 +13,17 @@ var fileServer = new(nodeStatic.Server)(__dirname, {
 });
 
 var app = http.createServer(function(req, res) {
-  // Handle the root route explicitly
   if (req.url === '/') {
     req.url = '/index.html';
   }
-  
-  // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
     return;
   }
-  
   fileServer.serve(req, res);
 }).listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
@@ -50,25 +45,19 @@ var io = socketIO(app, {
   maxHttpBufferSize: 1e8
 });
 io.sockets.on('connection', function(socket) {
-
-  // convenience function to log server messages on the client
   function log() {
     var array = ['Message from server:'];
     array.push.apply(array, arguments);
     socket.emit('log', array);
   }
-
   socket.on('message', function(message) {
     log('Client said: ', message);
-    // for a real app, would be room-only (not broadcast)
     socket.broadcast.emit('message', message);
   });
-
   socket.on('send_to_server_raw', async function(message) {
     console.log("server received raw message", message);
     socket.broadcast.emit('to_client_raw', message);
   });
-
   socket.on('test', async function(data) {
     let text, source, target;
     try {
@@ -76,17 +65,13 @@ io.sockets.on('connection', function(socket) {
       text = jsonData.text;
       source = jsonData.source;
       target = jsonData.target;
-      
       console.log('Translation request:', { text, source, target });
-      
-      // Validate inputs
       if (!text) {
         throw new Error('Missing text to translate');
       }
       if (!source || !target) {
         throw new Error('Missing source or target language');
       }
-
       const response = await axios({
         method: 'POST',
         url: 'https://translation.googleapis.com/language/translate/v2',
@@ -100,7 +85,6 @@ io.sockets.on('connection', function(socket) {
           format: 'text'
         }
       });
-
       if (response.data && response.data.data && response.data.data.translations) {
         const translatedText = response.data.data.translations[0].translatedText;
         console.log('Translation:', translatedText);
@@ -121,30 +105,25 @@ io.sockets.on('connection', function(socket) {
       socket.emit('translation_error', error.response?.data?.error?.message || error.message);
     }
   });
-
   socket.on('create or join', function(room) {
     log('Received request to create or join room ' + room);
-
     var clientsInRoom = io.sockets.adapter.rooms[room];
     var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
     log('Room ' + room + ' now has ' + numClients + ' client(s)');
-
     if (numClients === 0) {
       socket.join(room);
       log('Client ID ' + socket.id + ' created room ' + room);
       socket.emit('created', room, socket.id);
-
     } else if (numClients === 1) {
       log('Client ID ' + socket.id + ' joined room ' + room);
       io.sockets.in(room).emit('join', room);
       socket.join(room);
       socket.emit('joined', room, socket.id);
       io.sockets.in(room).emit('ready');
-    } else { // max two clients
+    } else {
       socket.emit('full', room);
     }
   });
-
   socket.on('ipaddr', function() {
     var ifaces = os.networkInterfaces();
     for (var dev in ifaces) {
@@ -155,9 +134,7 @@ io.sockets.on('connection', function(socket) {
       });
     }
   });
-
   socket.on('bye', function(){
     console.log('received bye');
   });
-
 });
